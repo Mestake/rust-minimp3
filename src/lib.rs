@@ -855,7 +855,7 @@ fn L3_decode_scalefactors(
     } else if gr.preflag != 0 {
         static PREAMP: [u8; 10] =
             [1, 1, 1, 1, 2, 2, 3, 3, 3, 2];
-            
+
         for i in 0..10 {
             iscf[11 + i] += PREAMP[i];
         }
@@ -910,6 +910,39 @@ static POW43: [f32; 129 + 16] = [
     598.476581, 605.080431, 611.702349, 618.342238, 625.000000,
     631.675540, 638.368763, 645.079578,
 ];
+
+fn L3_pow_43(mut x: u32) -> f32 {
+    if x < 129 {
+        return POW43[16 + x as usize];
+    }
+
+    let mult;
+    if x < 1024 {
+        mult = 16;
+        x <<= 3;
+    } else {
+        mult = 256;
+    }
+
+    let sign = 2 * x & 64;
+    let frac =
+        ((x & 63) - sign) as f32 / ((x & !63) + sign) as f32;
+    let offset = (16 + ((x + sign) >> 6)) as usize;
+    POW43[offset]
+        * (1.0 + frac * ((4.0 / 3.0) + frac * (2.0 / 9.0)))
+        * mult as f32
+}
+
+/// TODO: this fucking piece of shit must be rewritten from scratch
+fn L3_huffman(
+    dst: &mut [f32],
+    bs: &mut Bs_t,
+    gr_info: &L3GrInfo_t,
+    scf: &[f32],
+    layer3gr_limit: i32,
+) {
+    unimplemented!()
+}
 
 #[cfg(test)]
 mod tests {
