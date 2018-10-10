@@ -1,0 +1,2 @@
+An attempt to rewrite a [minimp3](https://github.com/lieff/minimp3) in pure rust. This work is mostly inspired by 
+[rinimp3](https://github.com/icefoxen/rinimp3), I plan to join our efforts when I'll get familiar with the codebase.

@@ -1,0 +1,12 @@
+[package]
+name = "rust-minimp3"
+version = "0.1.0"
+authors = ["Mestake <mestake.huge@yandex.ru>"]
+
+[dependencies]
+cfg-if = "0.1"
+
+[features]
+float_output = []
+only_mp3 = []
+# max_frame_sync_matches = []
