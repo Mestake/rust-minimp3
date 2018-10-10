@@ -1,6 +1,7 @@
 #![allow(non_camel_case_types)]
 
 use std::ops::*;
+use utils::*;
 
 
 const HDR_SIZE: usize = 4;
@@ -121,7 +122,7 @@ impl Hdr {
         ];
 
         let h = self;
-        let i1 = (h.test_mpeg1() > 0) as usize; // FIXME: MAYBE BUG
+        let i1 = h.test_mpeg1().bclamp();
         let i2 = (h.get_layer() - 1) as usize;
         let i3 = h.get_bitrate() as usize;
         
@@ -132,10 +133,9 @@ impl Hdr {
         static HZ: [u32; 3] = [44100, 48000, 32000]; 
 
         // FIXME: MAY BE INCORECT
-        let mut res = HZ[self.get_sample_rate() as usize]; 
-        res >>= self.test_mpeg1().not(); 
-        res >>= self.test_not_mpeg25().not();
-        res
+        HZ[self.get_sample_rate() as usize] 
+            >> self.test_mpeg1().is0()
+            >> self.test_not_mpeg25().is0()
     }
 
     pub fn frame_samples(&self) -> u32 {
