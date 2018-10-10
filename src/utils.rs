@@ -39,17 +39,19 @@ pub fn slice_advance_mut<T>(slice: &mut &mut [T], i: usize) {
     *slice = res;
 }
 
-pub fn copy_forward_within_slice<T: Copy>(slice: &mut [T], 
-                                          src: usize, 
-                                          dst: usize,
-                                          count: usize) {
+pub fn copy_forward_within_slice<T: Copy>(
+    slice: &mut [T],
+    src: usize,
+    dst: usize,
+    count: usize,
+) {
     assert!(src < dst);
     assert!(dst + count <= slice.len());
 
     let src = &mut slice[src..].as_mut_ptr();
     let dst = &mut slice[dst..].as_mut_ptr();
 
-    for i in 0 .. count {
+    for i in 0..count {
         unsafe {
             let val = src.add(i).read();
             dst.add(i).write(val);
@@ -57,7 +59,11 @@ pub fn copy_forward_within_slice<T: Copy>(slice: &mut [T],
     }
 }
 
-pub fn slice_copy_n<T: Copy>(src: &[T], dst: &mut [T], n: usize) {
+pub fn slice_copy_n<T: Copy>(
+    src: &[T],
+    dst: &mut [T],
+    n: usize,
+) {
     assert!(src.len() >= n);
     assert!(dst.len() >= n);
 
@@ -73,7 +79,6 @@ pub fn slice_fill<T: Copy>(dst: &mut [T], val: T) {
     }
 }
 
-
 /// A set of some useful things surprisengly missing in std
 pub trait Number: Copy {
     /// "clamp" value between lower and highter bounds
@@ -85,7 +90,7 @@ pub trait Number: Copy {
 
     /// return 1 if x == 0; 0 otherwise
     fn is0(self) -> usize;
-} 
+}
 
 macro_rules! impl_Number {
     ($($t:ty),*) => ($(
@@ -109,4 +114,3 @@ impl_Number! {
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize
 }
-

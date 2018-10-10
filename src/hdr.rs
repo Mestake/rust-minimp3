@@ -3,7 +3,6 @@
 use std::ops::*;
 use utils::*;
 
-
 const HDR_SIZE: usize = 4;
 
 pub struct Hdr([u8; HDR_SIZE]);
@@ -90,34 +89,52 @@ impl Hdr {
 
     pub fn is_valid(&self) -> bool {
         let h = self;
-        h[0] == 0xff &&
-            (h[1] & 0xF0 == 0xf0 || h[1] & 0xFE == 0xe2) &&
-            h.get_layer() != 0 &&
-            h.get_bitrate() != 15 &&
-            h.get_sample_rate() != 3
+        h[0] == 0xff
+            && (h[1] & 0xF0 == 0xf0 || h[1] & 0xFE == 0xe2)
+            && h.get_layer() != 0
+            && h.get_bitrate() != 15
+            && h.get_sample_rate() != 3
     }
 
     pub fn compare(&self, other: &Self) -> bool {
         let h1 = self;
         let h2 = other;
 
-        h2.is_valid() &&
-            (h1[1] ^ h2[1]) & 0xFE == 0 &&
-            (h1[2] ^ h2[2]) & 0x0C == 0 &&
-            !(h1.is_free_format() ^ h2.is_free_format())
+        h2.is_valid()
+            && (h1[1] ^ h2[1]) & 0xFE == 0
+            && (h1[2] ^ h2[2]) & 0x0C == 0
+            && !(h1.is_free_format() ^ h2.is_free_format())
     }
 
     pub fn bitrate_kbps(&self) -> u32 {
         static HALFRATE: [[[u8; 15]; 3]; 2] = [
-            [ 
-                [ 0,4,8,12,16,20,24,28,32,40,48,56,64,72,80 ], 
-                [ 0,4,8,12,16,20,24,28,32,40,48,56,64,72,80 ], 
-                [ 0,16,24,28,32,40,48,56,64,72,80,88,96,112,128 ] 
+            [
+                [
+                    0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48,
+                    56, 64, 72, 80,
+                ],
+                [
+                    0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48,
+                    56, 64, 72, 80,
+                ],
+                [
+                    0, 16, 24, 28, 32, 40, 48, 56, 64, 72, 80,
+                    88, 96, 112, 128,
+                ],
             ],
-            [   
-                [ 0,16,20,24,28,32,40,48,56,64,80,96,112,128,160 ],
-                [ 0,16,24,28,32,40,48,56,64,80,96,112,128,160,192 ], 
-                [ 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224 ] 
+            [
+                [
+                    0, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80,
+                    96, 112, 128, 160,
+                ],
+                [
+                    0, 16, 24, 28, 32, 40, 48, 56, 64, 80, 96,
+                    112, 128, 160, 192,
+                ],
+                [
+                    0, 16, 32, 48, 64, 80, 96, 112, 128, 144,
+                    160, 176, 192, 208, 224,
+                ],
             ],
         ];
 
@@ -125,15 +142,15 @@ impl Hdr {
         let i1 = h.test_mpeg1().bclamp();
         let i2 = (h.get_layer() - 1) as usize;
         let i3 = h.get_bitrate() as usize;
-        
+
         2 * HALFRATE[i1][i2][i3] as u32
     }
 
     pub fn sample_rate_hz(&self) -> u32 {
-        static HZ: [u32; 3] = [44100, 48000, 32000]; 
+        static HZ: [u32; 3] = [44100, 48000, 32000];
 
         // FIXME: MAY BE INCORECT
-        HZ[self.get_sample_rate() as usize] 
+        HZ[self.get_sample_rate() as usize]
             >> self.test_mpeg1().is0()
             >> self.test_not_mpeg25().is0()
     }
@@ -141,15 +158,15 @@ impl Hdr {
     pub fn frame_samples(&self) -> u32 {
         if self.is_layer_1() {
             384
-        }
-        else {
+        } else {
             1152 >> self.is_frame_576() as u32
         }
     }
 
     pub fn frame_bytes(&self, free_format_size: u32) -> u32 {
-        let mut frame_bytes = self.frame_samples() *
-            self.bitrate_kbps() * 125 / self.sample_rate_hz();
+        let mut frame_bytes =
+            self.frame_samples() * self.bitrate_kbps() * 125
+                / self.sample_rate_hz();
 
         if self.is_layer_1() {
             frame_bytes &= !3;
@@ -157,8 +174,7 @@ impl Hdr {
 
         if frame_bytes != 0 {
             frame_bytes
-        }
-        else {
+        } else {
             free_format_size
         }
     }
@@ -167,12 +183,10 @@ impl Hdr {
         if self.test_padding() != 0 {
             if self.is_layer_1() {
                 4
-            }
-            else {
+            } else {
                 1
             }
-        }
-        else {
+        } else {
             0
         }
     }
